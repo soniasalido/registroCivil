@@ -1,0 +1,28 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model RegistroCivil {
+  id              Int      @id @default(autoincrement())
+  clavePrimaria   String   @unique
+  registro        String   @default("xxxx")
+  seccion         String   // ENUM('1ª', '2ª', '3ª') - maneja validación en código
+  tomo            Int
+  numeroPagina    Int
+  lado            String   // ENUM('Frontal', 'Trasera') - maneja validación en código
+  notasMarginales String?  @default("1")
+  nombre          String
+  primerApellido  String
+  segundoApellido String?
+  tipoDocumento   String?  // ENUM('NIF', 'NIE') - maneja validación en código
+  documento       String?
+  fecha           DateTime?
+  observaciones   String?
+  urlPDF          String?
+}

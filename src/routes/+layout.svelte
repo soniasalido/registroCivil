@@ -1,6 +1,7 @@
 <script lang="ts">
-	import '../app.css';
-	let { children } = $props();
+	import '../app.css'; // Importa estilos globales
+	import '$lib';       // Importa cualquier cosa desde $lib
 </script>
 
-{@render children()}
+<!-- El contenido de las rutas hijas se renderiza aquí -->
+<slot />
