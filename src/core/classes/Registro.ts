@@ -2,6 +2,11 @@
 // import fs from 'fs';
 // import path from 'path';
 
+/*
+No voy a usar las clases de este archivo, pero las dejo aquí por si las necesito en el futuro.
+Voy a usar stores de Svelte para gestionar los datos de los registros.
+ */
+
 type Seccion = '1ª' | '2ª' | '3ª';
 type Lado = 'Frontal' | 'Trasera';
 type TipoDocumento = 'NIF' | 'NIE';

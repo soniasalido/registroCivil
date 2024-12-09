@@ -1,26 +1,15 @@
 <script lang="ts">
- 	import { RegistroCivil } from '../../core/classes/Registro';
+	import { RegistroStore, validarRegistro, actualizarRegistro } from '../../core/store/registroStore';
 	import PdfRegistro from './PdfRegistro.svelte';
-
-	// Crear un nuevo registro civil con valores iniciales
-	let registroCivil = new RegistroCivil({
-		seccion: '1ª',
-		tomo: 0,
-		numeroPagina: 0,
-		lado: 'Frontal',
-		nombre: '',
-		primerApellido: '',
-		urlPDF: '', // Inicialmente sin ruta de PDF
-	});
+	import { get } from 'svelte/store';
 
 	let error: string | null = null;
 	let success: string | null = null;
 
-	// Actualizar la URL del PDF desde el evento del componente PdfRegistro
+	// Actualizar la URL del PDF desde el componente PdfRegistro
 	const handleUpdatePdfUrl = (event: CustomEvent<string>) => {
-		registroCivil.urlPDF = event.detail; // Actualiza el campo urlPDF del registro
+		actualizarRegistro({ urlPDF: event.detail }); // Actualiza la URL del PDF en el store
 	};
-
 
 	// Maneja el envío del formulario
 	const handleSubmit = async (event: Event) => {
@@ -29,14 +18,22 @@
 		success = null;
 
 		try {
-			registroCivil.validarRegistro();
+			const registro = get(RegistroStore); // Obtiene el estado actual del store
+			validarRegistro(registro); // Valida los datos
 
-			const registroData = registroCivil.toJSON();
 
 			// Convertir fecha al formato ISO 8601 si existe
-			if (registroData.fecha) {
-				registroData.fecha = new Date(registroData.fecha).toISOString();
+			if (registro.fecha) {
+				const fechaISO = new Date(registro.fecha).toISOString();
+				const response = await fetch('/api/registros', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ ...registro, fecha: fechaISO }),
+				});
 			}
+
 
 			// Enviar datos al backend
 			const response = await fetch('/api/registros', {
@@ -44,7 +41,7 @@
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify(registroData),
+				body: JSON.stringify(registro),
 			});
 
 			if (!response.ok) {
@@ -58,7 +55,6 @@
 	};
 </script>
 
-
 <main>
 	<form on:submit|preventDefault={handleSubmit}>
 		{#if error}
@@ -70,55 +66,54 @@
 
 		<!-- Campos del formulario -->
 		<label for="seccion">Sección</label>
-		<select id="seccion" bind:value={registroCivil.seccion}>
+		<select id="seccion" bind:value={$RegistroStore.seccion}>
 			<option value="1ª">1ª</option>
 			<option value="2ª">2ª</option>
 			<option value="3ª">3ª</option>
 		</select>
 
 		<label for="tomo">Tomo</label>
-		<input type="number" id="tomo" bind:value={registroCivil.tomo} min="0" required />
+		<input type="number" id="tomo" bind:value={$RegistroStore.tomo} min="0" required />
 
 		<label for="numeroPagina">Número de Página</label>
-		<input type="number" id="numeroPagina" bind:value={registroCivil.numeroPagina} min="0" required />
+		<input type="number" id="numeroPagina" bind:value={$RegistroStore.numeroPagina} min="0" required />
 
 		<label for="lado">Lado</label>
-		<select id="lado" bind:value={registroCivil.lado}>
+		<select id="lado" bind:value={$RegistroStore.lado}>
 			<option value="Frontal">Frontal</option>
 			<option value="Trasera">Trasera</option>
 		</select>
 
 		<label for="nombre">Nombre</label>
-		<input type="text" id="nombre" bind:value={registroCivil.nombre} required />
+		<input type="text" id="nombre" bind:value={$RegistroStore.nombre} required />
 
 		<label for="primerApellido">Primer Apellido</label>
-		<input type="text" id="primerApellido" bind:value={registroCivil.primerApellido} required />
+		<input type="text" id="primerApellido" bind:value={$RegistroStore.primerApellido} required />
 
 		<label for="segundoApellido">Segundo Apellido</label>
-		<input type="text" id="segundoApellido" bind:value={registroCivil.segundoApellido} />
+		<input type="text" id="segundoApellido" bind:value={$RegistroStore.segundoApellido} />
 
 		<label for="tipoDocumento">Tipo de Documento</label>
-		<select id="tipoDocumento" bind:value={registroCivil.tipoDocumento}>
+		<select id="tipoDocumento" bind:value={$RegistroStore.tipoDocumento}>
 			<option value="">-- Seleccione --</option>
 			<option value="NIF">NIF</option>
 			<option value="NIE">NIE</option>
 		</select>
 
 		<label for="documento">Documento</label>
-		<input type="text" id="documento" bind:value={registroCivil.documento} />
+		<input type="text" id="documento" bind:value={$RegistroStore.documento} />
 
 		<label for="fecha">Fecha</label>
-		<input type="date" id="fecha" bind:value={registroCivil.fecha} />
+		<input type="date" id="fecha" bind:value={$RegistroStore.fecha} />
 
 		<label for="observaciones">Observaciones</label>
-		<textarea id="observaciones" bind:value={registroCivil.observaciones}></textarea>
+		<textarea id="observaciones" bind:value={$RegistroStore.observaciones}></textarea>
 
 		<!-- Componente PDF -->
 		<PdfRegistro on:updatePdfUrl={handleUpdatePdfUrl} />
 
 		<button type="submit"><strong>Añadir Registro</strong></button>
 	</form>
-
 </main>
 
 <style>
@@ -158,6 +153,10 @@
     }
     .error {
         color: red;
+        margin-bottom: 1rem;
+    }
+    .success {
+        color: green;
         margin-bottom: 1rem;
     }
 </style>
