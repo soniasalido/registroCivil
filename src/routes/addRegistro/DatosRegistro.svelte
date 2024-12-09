@@ -1,30 +1,61 @@
 <script lang="ts">
  	import { RegistroCivil } from '../../core/classes/Registro';
+	import PdfRegistro from './PdfRegistro.svelte';
 
-	 let registroCivil = new RegistroCivil({
-			seccion: '1ª',
-			tomo: 0,
-			numeroPagina: 0,
-			lado: 'Frontal',
-			nombre: '',
-			primerApellido: ''
-		});
+	// Crear un nuevo registro civil con valores iniciales
+	let registroCivil = new RegistroCivil({
+		seccion: '1ª',
+		tomo: 0,
+		numeroPagina: 0,
+		lado: 'Frontal',
+		nombre: '',
+		primerApellido: '',
+		urlPDF: '', // Inicialmente sin ruta de PDF
+	});
 
-		let error: string | null = null;
+	let error: string | null = null;
+	let success: string | null = null;
 
-		// Maneja el envío del formulario
-		const handleSubmit = (event: Event) => {
-			event.preventDefault();
-			error = null;
+	// Actualizar la URL del PDF desde el evento del componente PdfRegistro
+	const handleUpdatePdfUrl = (event: CustomEvent<string>) => {
+		registroCivil.urlPDF = event.detail; // Actualiza el campo urlPDF del registro
+	};
 
-			try {
-				registroCivil.validarRegistro();
-				console.log('Datos válidos:', registroCivil.toJSON());
-				alert('Registro enviado correctamente.');
-			} catch (err) {
-				error = err instanceof Error ? err.message : 'Error desconocido';
+
+	// Maneja el envío del formulario
+	const handleSubmit = async (event: Event) => {
+		event.preventDefault();
+		error = null;
+		success = null;
+
+		try {
+			registroCivil.validarRegistro();
+
+			const registroData = registroCivil.toJSON();
+
+			// Convertir fecha al formato ISO 8601 si existe
+			if (registroData.fecha) {
+				registroData.fecha = new Date(registroData.fecha).toISOString();
 			}
-		};
+
+			// Enviar datos al backend
+			const response = await fetch('/api/registros', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(registroData),
+			});
+
+			if (!response.ok) {
+				throw new Error(await response.text());
+			}
+
+			success = 'Registro añadido correctamente.';
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Error desconocido';
+		}
+	};
 </script>
 
 
@@ -33,7 +64,11 @@
 		{#if error}
 			<div class="error">{error}</div>
 		{/if}
+		{#if success}
+			<div class="success">{success}</div>
+		{/if}
 
+		<!-- Campos del formulario -->
 		<label for="seccion">Sección</label>
 		<select id="seccion" bind:value={registroCivil.seccion}>
 			<option value="1ª">1ª</option>
@@ -77,6 +112,9 @@
 
 		<label for="observaciones">Observaciones</label>
 		<textarea id="observaciones" bind:value={registroCivil.observaciones}></textarea>
+
+		<!-- Componente PDF -->
+		<PdfRegistro on:updatePdfUrl={handleUpdatePdfUrl} />
 
 		<button type="submit"><strong>Añadir Registro</strong></button>
 	</form>
