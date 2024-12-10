@@ -24,15 +24,9 @@
 
 			// Convertir fecha al formato ISO 8601 si existe
 			if (registro.fecha) {
-				const fechaISO = new Date(registro.fecha).toISOString();
-				const response = await fetch('/api/registros', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({ ...registro, fecha: fechaISO }),
-				});
+				registro.fecha = new Date(registro.fecha).toISOString();
 			}
+
 
 
 			// Enviar datos al backend
@@ -49,6 +43,22 @@
 			}
 
 			success = 'Registro añadido correctamente.';
+			// Limpiar el formulario reseteando el store
+			RegistroStore.set({
+				registro: 'xxxx',
+				seccion: '1ª',
+				tomo: 0,
+				numeroPagina: 0,
+				lado: 'Frontal',
+				nombre: '',
+				primerApellido: '',
+				segundoApellido: null,
+				tipoDocumento: null,
+				documento: null,
+				fecha: null,
+				observaciones: null,
+				urlPDF: null
+			});
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Error desconocido';
 		}
