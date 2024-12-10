@@ -34,7 +34,7 @@ export async function POST({ request }: { request: Request }) {
 				clavePrimaria,
 			},
 		});
-
+		console.log('Registro creado:', registro);
 		return json({ registro });
 	} catch (error) {
 		return json({ error: error.message }, { status: 500 });
