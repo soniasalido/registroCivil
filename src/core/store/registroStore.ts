@@ -91,3 +91,40 @@ export function actualizarRegistro(nuevoRegistro: Partial<RegistroCivil>): void 
 		};
 	});
 }
+
+
+
+// Función para buscar registros en la base de datos
+export async function buscarRegistro(criteria: Partial<RegistroCivil>) {
+	try {
+		const {
+			seccion,
+			tomo,
+			numeroPagina,
+			lado,
+			nombre,
+			primerApellido,
+			segundoApellido,
+		} = criteria;
+
+		// Crear filtros dinámicos
+		const where = {};
+		if (seccion) where['seccion'] = seccion;
+		if (tomo) where['tomo'] = tomo;
+		if (numeroPagina) where['numeroPagina'] = numeroPagina;
+		if (lado) where['lado'] = lado;
+		if (nombre) where['nombre'] = { contains: nombre, mode: 'insensitive' };
+		if (primerApellido) where['primerApellido'] = { contains: primerApellido, mode: 'insensitive' };
+		if (segundoApellido) where['segundoApellido'] = { contains: segundoApellido, mode: 'insensitive' };
+
+		// Consultar la base de datos con Prisma
+		const registros = await prisma.registro.findMany({
+			where,
+		});
+
+		return registros;
+	} catch (error) {
+		console.error('Error al buscar registros:', error);
+		throw new Error('No se pudo realizar la búsqueda');
+	}
+}
