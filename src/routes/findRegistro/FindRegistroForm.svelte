@@ -85,8 +85,6 @@
 </script>
 
 <main>
-	<h2>Buscar Registro</h2>
-
 	<!-- Selección del tipo de búsqueda -->
 	<label>
 		<input
