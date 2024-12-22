@@ -10,7 +10,5 @@ export { default as NavFindRegistro } from '../core/layout/NavFindRegistro.svelt
 
 export { default as NavAddRegistro } from '../core/layout/NavAddRegistro.svelte';
 
-export { default as NavModificar } from '../core/layout/NavModificar.svelte';
-
 import '../core/layout/styles.css';
 

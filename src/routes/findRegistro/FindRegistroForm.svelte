@@ -1,24 +1,29 @@
-<script lang="ts">
+<script lang="ts" xmlns="http://www.w3.org/1999/html">
 	import PdfViewer from './PdfViewer.svelte';
 	import { RegistroStore } from '../../core/store/registroStore';
 	import ModificarRegistro from '../modificar/ModificarRegistro.svelte';
 
 	let resultados: any[] = [];
-	let error = "";
 	let cargando = false;
 	let mostrarModificar = false;
+	let error: string | null = null;
+	let success: string | null = null;
 
-
+	// Suscripción reactiva al store
+	let registro;
+	RegistroStore.subscribe((value) => {
+		registro = value;
+	});
 
 	// Variables de búsqueda
-	let searchBy = "documento"; // Tipo de búsqueda seleccionada
-	let seccion = "";
-	let tomo = "";
-	let pagina = "";
-	let lado = "Frontal"; // Opciones: Frontal o Trasera
-	let nombre = "";
-	let primerApellido = "";
-	let segundoApellido = "";
+	let searchBy = 'documento'; // Tipo de búsqueda seleccionada
+	let seccion = '';
+	let tomo = '';
+	let pagina = '';
+	let lado = 'Frontal'; // Opciones: Frontal o Trasera
+	let nombre = '';
+	let primerApellido = '';
+	let segundoApellido = '';
 
 	let registroSeleccionado: any = null; // Registro específico mostrado
 
@@ -31,11 +36,11 @@
 
 		// Actualizar el store globalmente con el registro seleccionado
 		RegistroStore.set({
-			...registro, // Copiar los valores del registro seleccionado
+			...registro // Copiar los valores del registro seleccionado
 		});
 
 		// Obtiene el contenido del store y lo muestra en consola
-		console.log("Contenido del storexxx------------:", registro);
+		console.log('Contenido del storexxx------------:', registro);
 	}
 
 
@@ -44,18 +49,18 @@
 	// Función para manejar la búsqueda
 	async function buscarRegistros() {
 		cargando = true;
-		error = "";
+		error = '';
 		resultados = [];
 
-		const body = searchBy === "documento"
+		const body = searchBy === 'documento'
 			? { seccion, tomo: parseInt(tomo) || 0, pagina: parseInt(pagina) || 0, lado }
 			: { nombre, primerApellido, segundoApellido };
 
 		try {
-			const response = await fetch("/api/registros/buscar", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(body),
+			const response = await fetch('/api/registros/buscar', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body)
 			});
 
 			if (!response.ok) {
@@ -75,15 +80,15 @@
 	// Función para realizar la búsqueda
 	const handleSearch = () => {
 		const params =
-			searchBy === "documento"
+			searchBy === 'documento'
 				? { seccion, tomo, pagina, lado }
 				: { nombre, primerApellido, segundoApellido };
 
-		if (typeof onSearch === "function") {
+		if (typeof onSearch === 'function') {
 			// Envía los parámetros al componente padre
 			onSearch(params);
 		} else {
-			console.warn("onSearch no está definido o no es una función.");
+			console.warn('onSearch no está definido o no es una función.');
 		}
 
 		// Realiza la búsqueda en el servidor
@@ -94,6 +99,49 @@
 	// Función para modificar un registro
 	const modificarRegistro = () => {
 		mostrarModificar = true;
+	};
+
+
+	//************************************************************************************************
+	// Función para eliminar un registro
+	//************************************************************************************************
+	// Función para eliminar un registro
+	const eliminaregistro = async () => {
+		error = null;
+		success = null;
+
+		if (!registro?.id) {
+			error = 'No hay un registro seleccionado para eliminar.';
+			return;
+		}
+
+		try {
+			const response = await fetch('/api/registros', {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ id: registro.id })
+			});
+
+			if (!response.ok) {
+				throw new Error(`Error al eliminar el registro: ${response.statusText}`);
+			}
+
+			const data = await response.json();
+
+			if (data.success) {
+				success = 'Registro eliminado correctamente.';
+				alert('Registro eliminado correctamente.');
+				RegistroStore.set(null); // Limpiar el registro del store
+				// redirige a la página de Busquedas
+				window.location.href = '/findRegistro';
+			} else {
+				throw new Error(data.error || 'Ocurrió un error al eliminar el registro.');
+			}
+		} catch (err) {
+			error = (err as Error).message || 'Error al eliminar el registro.';
+		}
 	};
 
 
@@ -223,24 +271,24 @@
 		<hr />
 		<h2><strong>Registro Seleccionado:</strong></h2>
 <!--		<pre>{JSON.stringify($RegistroStore, null, 2)}</pre>-->
-		<p>ID: { $RegistroStore.id }</p>
-		<p>Clave Primaria: { RegistroStore.clavePrimaria }</p>
-		<p>Sección { $RegistroStore.seccion }</p>
-		<p>Tomo: { $RegistroStore.tomo }</p>
-		<p>Número de Página: { $RegistroStore.numeroPagina }</p>
-		<p>Lado: { $RegistroStore.lado }</p>
-		<p>Nombre: { $RegistroStore.nombre }</p>
-		<p>Primer Apellido: { $RegistroStore.primerApellido }</p>
-		<p>Segundo Apellido: { $RegistroStore.segundoApellido }</p>
-		<p>Tipo de Documento: { $RegistroStore.tipoDocumento }</p>
-		<p>Documento: { $RegistroStore.documento }</p>
-		<p>Fecha: { $RegistroStore.fecha }</p>
-		<p>Observaciones: { $RegistroStore.observaciones }</p>
-<!--		<p>URL PDF: { $RegistroStore.urlPDF }</p>-->
+		<p>ID: <strong>{ $RegistroStore.id }</strong></p>
+		<p>Sección <strong>{ $RegistroStore.seccion }</strong></p>
+		<p>Tomo: <strong>{ $RegistroStore.tomo }</strong></p>
+		<p>Número de Página: <strong>{ $RegistroStore.numeroPagina }</strong></p>
+		<p>Lado: <strong>{ $RegistroStore.lado }</strong></p>
+		<p>Nombre: <strong>{ $RegistroStore.nombre }</strong></p>
+		<p>Primer Apellido: <strong>{ $RegistroStore.primerApellido }</strong></p>
+		<p>Segundo Apellido: <strong>{ $RegistroStore.segundoApellido }</strong></p>
+		<p>Tipo de Documento: <strong>{ $RegistroStore.tipoDocumento }</strong></p>
+		<p>Documento: <strong>{ $RegistroStore.documento }</strong></p>
+		<p>Fecha: <strong>{ $RegistroStore.fecha }</strong></p>
+		<p>Observaciones: <strong>{ $RegistroStore.observaciones }</strong></p>
+		<!--		<p>URL PDF: { $RegistroStore.urlPDF }</p>-->
 
 		<h2>Documento adjuntado ⇨</h2>
 		<PdfViewer url={$RegistroStore.urlPDF} />
 		<button class="modify-button" onclick={modificarRegistro}>Modificar</button>
+		<button class="modify-button" onclick={eliminaregistro}>Eliminar</button>
 	{/if}
 
 

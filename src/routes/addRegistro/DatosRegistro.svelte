@@ -67,6 +67,7 @@
 			}
 
 			success = 'Registro añadido correctamente.';
+			alert('Registro añadido correctamente.');
 			// Limpiar el formulario reseteando el store
 			RegistroStore.set({
 				registro: 'xxxx',
@@ -89,6 +90,9 @@
 			if (fileInput) {
 				fileInput.value = ''; // Resetea el campo de archivo
 			}
+
+			//Redirige a la página de inicio
+			window.location.href = '/';
 
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Error desconocido';
