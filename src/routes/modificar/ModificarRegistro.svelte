@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { RegistroStore, guardarCambiosRegistro } from '../../core/store/registroStore';
+	import { RegistroStore, guardarCambiosRegistro, actualizarRegistro } from '../../core/store/registroStore';
+	import { get } from 'svelte/store';
+	import PdfViewer from '../addRegistro/PdfViewer.svelte';
 
 	let error: string | null = null;
 	let success: string | null = null;
+	let mostrarCanvas = false;
 
 	// Suscripción reactiva al store
 	let registro;
@@ -45,6 +48,35 @@
 			error = (err as Error).message || 'Ocurrió un error al guardar los cambios.';
 		}
 	};
+
+
+	//Se guarda la ubicación del archivo
+	const handleFileChange = (event: Event) => {
+		mostrarCanvas = true;
+		const input = event.target as HTMLInputElement;
+
+		if (input.files && input.files[0]) {
+			const selectedFile = input.files[0];
+
+			// Base de la Ubicacion
+			const baseUbicacion = 'http://127.0.0.1:8080/';
+
+			// Obtén el nombre del archivo o su ubicación
+			const filePath = selectedFile.name; // Solo guarda el nombre del archivo
+
+			// Alternativamente, si necesitas información más detallada:
+			// const filePath = `${selectedFile.webkitRelativePath || selectedFile.name}`;
+
+			const fullPath = `${baseUbicacion}${filePath}`;
+
+			// Actualizar el store con la ubicación del archivo
+			actualizarRegistro({ urlPDF: fullPath });
+
+
+			//mostrar por consola el dato del registro store urlPDF
+			console.log("Archivo seleccionado:", get(RegistroStore).urlPDF);
+		}
+	};
 </script>
 
 <main>
@@ -59,6 +91,7 @@
 				Registro:
 				<input type="text" bind:value={registro.registro} />
 			</label>
+
 			<label>
 				Sección:
 				<select bind:value={registro.seccion}>
@@ -67,14 +100,17 @@
 					<option value="3ª">3ª</option>
 				</select>
 			</label>
+
 			<label>
 				Tomo:
 				<input type="number" bind:value={registro.tomo} />
 			</label>
+
 			<label>
 				Número de Página:
 				<input type="number" bind:value={registro.numeroPagina} />
 			</label>
+
 			<label>
 				Lado:
 				<select bind:value={registro.lado}>
@@ -82,22 +118,33 @@
 					<option value="Trasera">Trasera</option>
 				</select>
 			</label>
+
 			<label>
 				Nombre:
 				<input type="text" bind:value={registro.nombre} />
 			</label>
+
 			<label>
 				Primer Apellido:
 				<input type="text" bind:value={registro.primerApellido} />
 			</label>
+
 			<label>
 				Segundo Apellido:
 				<input type="text" bind:value={registro.segundoApellido} />
 			</label>
-			<label>
-				URL PDF:
-				<input type="text" bind:value={registro.urlPDF} />
-			</label>
+
+			<label for="file">Seleccionar PDF:</label>
+			<input
+				type="file"
+				id="file"
+				accept="application/pdf"
+				on:change={handleFileChange}
+			/>
+
+			{#if mostrarCanvas}
+				<PdfViewer urlPDF={registro.urlPDF} />
+			{/if}
 			<button type="submit">Guardar Cambios</button>
 		</form>
 	{/if}
