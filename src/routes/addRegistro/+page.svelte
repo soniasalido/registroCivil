@@ -1,7 +1,6 @@
 
 <script>
-	import { Footer, Header, NavAddRegistro } from '$lib';
-	import DatosRegistro from './DatosRegistro.svelte';
+	import { Footer, Header, NavAddRegistro, DatosRegistro } from '$lib';
 
 </script>
 

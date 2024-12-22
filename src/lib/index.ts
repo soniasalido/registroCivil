@@ -10,5 +10,8 @@ export { default as NavFindRegistro } from '../core/layout/NavFindRegistro.svelt
 
 export { default as NavAddRegistro } from '../core/layout/NavAddRegistro.svelte';
 
+export { default as DatosRegistro } from '../routes/addRegistro/DatosRegistro.svelte';
+
+
 import '../core/layout/styles.css';
 
