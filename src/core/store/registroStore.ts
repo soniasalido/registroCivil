@@ -39,6 +39,12 @@ const initialRegistro: RegistroCivil = {
 // Creación del store reactivo para el registro
 const { subscribe, update, set } = writable<RegistroCivil>(initialRegistro);
 
+// Función para restablecer el estado inicial del store
+export const resetRegistroStore = () => {
+	set({ ...initialRegistro });
+};
+
+
 // Función `get` para obtener el estado actual del store
 function get() {
 	let currentValue: RegistroCivil;
@@ -83,13 +89,13 @@ export async function guardarCambiosRegistro(registro: RegistroCivil): Promise<b
 }
 
 
-
 // Exportar el store con los métodos adicionales
 export const RegistroStore = {
 	subscribe,
 	update,
 	set,
 	get,
+	reset: resetRegistroStore,
 };
 
 // Métodos para la gestión de registros

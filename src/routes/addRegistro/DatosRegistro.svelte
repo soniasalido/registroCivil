@@ -1,10 +1,16 @@
 <script lang="ts">
-	import { RegistroStore, validarRegistro, actualizarRegistro } from '../../core/store/registroStore';
+	import { RegistroStore, validarRegistro, actualizarRegistro, resetRegistroStore } from '../../core/store/registroStore';
 	import { get } from 'svelte/store';
 	import PdfViewer from './PdfViewer.svelte';
+	import { onMount } from 'svelte';
+
+	onMount(() => {
+		resetRegistroStore(); // Limpia el store al cargar el componente
+	});
 
 	let error: string | null = null;
 	let success: string | null = null;
+
 
 
 	//Se guarda la ubicación del archivo
