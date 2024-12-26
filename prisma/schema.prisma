@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model RegistroCivil {
+  id              Int       @id @default(autoincrement())
+  clavePrimaria   String    @unique
+  registro        String    @default("xxxx")
+  seccion         String
+  tomo            Int
+  numeroPagina    Int
+  lado            String
+  notasMarginales String?   @default("1")
+  nombre          String
+  primerApellido  String
+  segundoApellido String?
+  tipoDocumento   String?
+  documento       String?
+  fecha           DateTime?
+  observaciones   String?
+  urlPDF          String?   @db.MediumText
+}

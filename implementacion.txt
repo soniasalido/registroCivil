@@ -1,0 +1,500 @@
+
+APLICACION:
+registroCivil
+
+-------------------------------------------------------------------------------------------
+CASOS DE USO:
+Gestión de los libros antiguos que no están informatizados del registro civil del ayuntamiento. Se escanean las hojas de los tomos y se gestionan en una aplicación que facilita la búsqueda de cada registro.
+
+------------------------------------
+Sevidor de documentos:
+npm install -g http-server
+http-server  http-server C:\Users\Usuario\Documents\registroCivil-APP\uploads -p 8080 --cors --showDir -p 8080 --cors --showDir
+
+
+
+
+-------------------------------------------------------------------------------------------
+CAMPOS NECESARIOS PARA LA APLICACIÓN:
+
+datosRegistrales:
+	- registro
+	- seccion --> Puede ser: 1ª || 2ª || 3ª
+	- tomo
+	- pagina
+		- numeroPagina
+		- lado --> Puede ser: Frontal || Trasera
+		- notasMarginales
+
+datosIdentificativos:
+	- nombre
+	- primerApellido
+	- segundoApellido
+	- tipoDocumento: Pueder ser: NIF || NIE
+	- documento
+fecha
+
+observaciones
+
+urlPDF
+
+-------------------------------------------------------------------------------------------
+CLAVES Y RESTRICCIONES:
+
+Clave primaria: id (única y autoincremental).
+Clave única compuesta: clavePrimaria (seccion, tomo, numero_pagina, lado).
+Restricciones de validación:
+	- seccion: Solo permite los valores 1ª, 2ª, y 3ª.
+	- lado: Solo permite los valores Frontal y Trasera.
+	- tipoDocumento: Solo permite los valores NIF y NIE.
+
+
+
+-------------------------------------------------------------------------------------------
+ESTRUCTURA JSON PARA ESTOS REQUISITOS
+
+{
+  "registro": {
+    "datosRegistrales": {
+      "registro": "123456",
+      "seccion": "1ª",
+      "tomo": 45,
+      "pagina": {
+        "numeroPagina": 120,
+        "lado": "Frontal",
+        "notasMarginales": "1"
+      }
+    },
+    "datosIdentificativos": {
+      "nombre": "Juan",
+      "primerApellido": "Pérez",
+      "segundoApellido": "García",
+      "tipoDocumento": "NIF",
+      "documento": "12345678A"
+    },
+    "fechas": {
+      "fechaInicio": "1980-01-15",
+      "fechaFin": "1980-12-31"
+    },
+    "observaciones": "Registro válido y completo."
+  }
+}
+
+
+-------------------------------------------------------------------------------------------
+CLASE JAVASCRIPT:
+
+class RegistroCivil {
+  constructor({
+    id = null,
+    registro = 'xxxx',
+    seccion,
+    tomo,
+    numeroPagina,
+    lado,
+    notasMarginales = '1',
+    nombre,
+    primerApellido,
+    segundoApellido = null,
+    tipoDocumento = null,
+    documento = null,
+    fecha = null,
+    observaciones = null,
+  }) {
+    // Propiedades de la tabla
+    this.id = id; // Clave primaria (autoincremental)
+    this.clavePrimaria = `${seccion}-${tomo}-${numeroPagina}-${lado}`; // Generada automáticamente
+    this.registro = registro; // Valor por defecto 'xxxx'
+    this.seccion = seccion; // Obligatorio (1ª, 2ª, 3ª)
+    this.tomo = tomo; // Obligatorio
+    this.numeroPagina = numeroPagina; // Obligatorio
+    this.lado = lado; // Obligatorio (Frontal, Trasera)
+    this.notasMarginales = notasMarginales; // Valor por defecto '1'
+    this.nombre = nombre; // Obligatorio
+    this.primerApellido = primerApellido; // Obligatorio
+    this.segundoApellido = segundoApellido; // Opcional
+    this.tipoDocumento = tipoDocumento; // Opcional (NIF, NIE)
+    this.documento = documento; // Opcional
+    this.fecha = fecha; // Opcional
+    this.observaciones = observaciones; // Opcional
+  }
+
+  // Método para validar los datos del registro
+  // Comprueba que los datos esenciales estén presentes y sean válidos.
+  validarRegistro() {
+    if (!this.seccion || !['1ª', '2ª', '3ª'].includes(this.seccion)) {
+      throw new Error('La sección debe ser 1ª, 2ª o 3ª.');
+    }
+    if (!this.tomo || isNaN(this.tomo)) {
+      throw new Error('El tomo es obligatorio y debe ser un número.');
+    }
+    if (!this.numeroPagina || isNaN(this.numeroPagina)) {
+      throw new Error('El número de página es obligatorio y debe ser un número.');
+    }
+    if (!this.lado || !['Frontal', 'Trasera'].includes(this.lado)) {
+      throw new Error('El lado debe ser Frontal o Trasera.');
+    }
+    if (!this.nombre || typeof this.nombre !== 'string') {
+      throw new Error('El nombre es obligatorio y debe ser una cadena.');
+    }
+    if (!this.primerApellido || typeof this.primerApellido !== 'string') {
+      throw new Error('El primer apellido es obligatorio y debe ser una cadena.');
+    }
+  }
+
+  // Método para generar clave primaria
+  generarClavePrimaria() {
+    this.clavePrimaria = `${this.seccion}-${this.tomo}-${this.numeroPagina}-${this.lado}`;
+  }
+
+  // Método para mostrar el registro como JSON
+  // Convierte la instancia a un objeto JSON para facilitar su manipulación o almacenamiento.
+  toJSON() {
+    return {
+      id: this.id,
+      clavePrimaria: this.clavePrimaria,
+      registro: this.registro,
+      seccion: this.seccion,
+      tomo: this.tomo,
+      numeroPagina: this.numeroPagina,
+      lado: this.lado,
+      notasMarginales: this.notasMarginales,
+      nombre: this.nombre,
+      primerApellido: this.primerApellido,
+      segundoApellido: this.segundoApellido,
+      tipoDocumento: this.tipoDocumento,
+      documento: this.documento,
+      fecha: this.fecha,
+      observaciones: this.observaciones,
+    };
+  }
+}
+
+
+NOTA: El metodo: generarClavePrimaria() puede ser útil para calcular la clave primaria en la aplicación para hacer una VALIDACIÓN de los datos que se van a introducir antes de hacer una inserción. Así nos aseguramos que no exista un registro duplicado antes de enviarlo a la base de datos.
+
+Podríamos calcular la clavePrimaria en la aplicación y verificarla:
+SELECT COUNT(*) FROM registrosCiviles WHERE clavePrimaria = '1ª-45-120-Frontal';
+
+
+NOTA: Si el campo id en la base de datos es autogenerado (por ejemplo, con AUTO_INCREMENT en MySQL), tiene sentido permitir que la propiedad id de la clase sea opcional (undefined o null) al crear un nuevo registro desde la aplicación. Esto es porque, al crear un registro en la aplicación antes de insertarlo en la base de datos, el valor de id aún no existe, ya que será asignado por la base de datos.
+
+Sin embargo, una vez que el registro se guarda en la base de datos y se recupera, el id ya no debería ser undefined, ya que siempre habrá un valor asignado por la base de datos.
+
+
+Ejemplo de uso:
+try {
+  const registro = new RegistroCivil({
+    registro: '123456',
+    seccion: '1ª',
+    tomo: 45,
+    numeroPagina: 120,
+    lado: 'Frontal',
+    notasMarginales: 'Nota adicional',
+    nombre: 'Juan',
+    primerApellido: 'Pérez',
+    segundoApellido: 'García',
+    tipoDocumento: 'NIF',
+    documento: '12345678A',
+    fecha: '2024-01-01',
+    observaciones: 'Registro completo.',
+  });
+
+  // Validar registro
+  registro.validarRegistro();
+
+  // Generar clave primaria
+  registro.generarClavePrimaria();
+
+  // Mostrar el registro como JSON
+  console.log(registro.toJSON());
+} catch (error) {
+  console.error('Error:', error.message);
+}
+
+
+-------------------------------------------------------------------------------------------
+CLASE TYPESCRIPT:
+
+import fs from 'fs';
+import path from 'path';
+
+type Seccion = '1ª' | '2ª' | '3ª';
+type Lado = 'Frontal' | 'Trasera';
+type TipoDocumento = 'NIF' | 'NIE';
+
+interface RegistroCivilProps {
+  id?: number;	  // Opcional antes de guardar, obligatorio después
+  registro?: string;
+  seccion: Seccion;
+  tomo: number;
+  numeroPagina: number;
+  lado: Lado;
+  notasMarginales?: string;
+  nombre: string;
+  primerApellido: string;
+  segundoApellido?: string | null;
+  tipoDocumento?: TipoDocumento | null;
+  documento?: string | null;
+  fecha?: Date | null;
+  observaciones?: string | null;
+  urlPDF?: string | null;
+}
+
+class RegistroCivil {
+  id: number;  	// Opcional al crear, obligatorio después de guardar
+  clavePrimaria: string;
+  registro: string;
+  seccion: Seccion;
+  tomo: number;
+  numeroPagina: number;
+  lado: Lado;
+  notasMarginales: string;
+  nombre: string;
+  primerApellido: string;
+  segundoApellido: string | null;
+  tipoDocumento: TipoDocumento | null;
+  documento: string | null;
+  fecha: Date | null;
+  observaciones: string | null;
+  urlPDF: string | null;
+
+  constructor({
+    id,
+    registro = 'xxxx',
+    seccion,
+    tomo,
+    numeroPagina,
+    lado,
+    notasMarginales = '1',
+    nombre,
+    primerApellido,
+    segundoApellido = null,
+    tipoDocumento = null,
+    documento = null,
+    fecha = null,
+    observaciones = null,
+    urlPDF = null,
+  }: RegistroCivilProps) {
+    this.id = id;
+    this.clavePrimaria = `${seccion}-${tomo}-${numeroPagina}-${lado}`;
+    this.registro = registro;
+    this.seccion = seccion;
+    this.tomo = tomo;
+    this.numeroPagina = numeroPagina;
+    this.lado = lado;
+    this.notasMarginales = notasMarginales;
+    this.nombre = nombre;
+    this.primerApellido = primerApellido;
+    this.segundoApellido = segundoApellido;
+    this.tipoDocumento = tipoDocumento;
+    this.documento = documento;
+    this.fecha = fecha;
+    this.observaciones = observaciones;
+    this.urlPDF = urlPDF;
+
+  }
+
+  // Método para validar los datos del registro
+  validarRegistro(): void {
+    if (!this.seccion || !['1ª', '2ª', '3ª'].includes(this.seccion)) {
+      throw new Error('La sección debe ser 1ª, 2ª o 3ª.');
+    }
+    if (!this.tomo || isNaN(this.tomo)) {
+      throw new Error('El tomo es obligatorio y debe ser un número.');
+    }
+    if (!this.numeroPagina || isNaN(this.numeroPagina)) {
+      throw new Error('El número de página es obligatorio y debe ser un número.');
+    }
+    if (!this.lado || !['Frontal', 'Trasera'].includes(this.lado)) {
+      throw new Error('El lado debe ser Frontal o Trasera.');
+    }
+    if (!this.nombre || typeof this.nombre !== 'string') {
+      throw new Error('El nombre es obligatorio y debe ser una cadena.');
+    }
+    if (!this.primerApellido || typeof this.primerApellido !== 'string') {
+      throw new Error('El primer apellido es obligatorio y debe ser una cadena.');
+    }
+  }
+
+  // Método para regenerar la clave primaria
+  generarClavePrimaria(): void {
+    this.clavePrimaria = `${this.seccion}-${this.tomo}-${this.numeroPagina}-${this.lado}`;
+  }
+
+  // Método para convertir la instancia en JSON
+  toJSON(): RegistroCivilProps {
+    return {
+      id: this.id,
+      registro: this.registro,
+      seccion: this.seccion,
+      tomo: this.tomo,
+      numeroPagina: this.numeroPagina,
+      lado: this.lado,
+      notasMarginales: this.notasMarginales,
+      nombre: this.nombre,
+      primerApellido: this.primerApellido,
+      segundoApellido: this.segundoApellido,
+      tipoDocumento: this.tipoDocumento,
+      documento: this.documento,
+      fecha: this.fecha,
+      observaciones: this.observaciones,
+      urlPDF: this.urlPDF,
+    };
+  }
+}
+
+
+
+// Ejemplo de uso
+const registro = new RegistroCivil({
+  seccion: '1ª',
+  tomo: 45,
+  numeroPagina: 120,
+  lado: 'Frontal',
+  nombre: 'Juan',
+  primerApellido: 'Pérez',
+  segundoApellido: 'García',
+  tipoDocumento: 'NIF',
+  documento: '12345678A',
+  fecha: new Date('2024-01-01'),
+  observaciones: 'Registro completo y válido.',
+});
+
+registro.validarRegistro();
+console.log(registro.toJSON());
+
+
+
+
+-------------------------------------------------------------------------------------------
+BASE DE DATOS
+
+Tabla: registrosCiviles
+Esta tabla contiene la información principal de los registros, incluyendo los datos registrales, identificativos, fechas, y observaciones.
+
+
+Para lograr que la clave primaria se genere automáticamente a partir de los campos seccion, tomo, numero_pagina, y lado, usamos una columna calculada:
+clave_primaria VARCHAR(255) GENERATED ALWAYS AS (
+        CONCAT(seccion, '-', tomo, '-', numero_pagina, '-', lado)
+    ) STORED UNIQUE, -- La columna se calcula automáticamente y es única
+
+
+Claves y restricciones
+Clave primaria: id (único y autoincremental).
+Clave única compuesta: clavePrimaria (seccion, tomo, numero_pagina, lado).
+Restricciones de validación:
+	- seccion: Solo permite los valores 1ª, 2ª, y 3ª.
+	- lado: Solo permite los valores Frontal y Trasera.
+	- tipoDocumento: Solo permite los valores NIF y NIE.
+
+
+Estructura de la BD:
+CREATE TABLE registrosCiviles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    clavePrimaria VARCHAR(255) GENERATED ALWAYS AS (CONCAT(seccion, '-', tomo, '-', numeroPagina, '-', lado)) STORED UNIQUE NOT NULL,
+    registro VARCHAR(50) NOT NULL DEFAULT 'xxxx', -- Valor por defecto de la oficina
+    seccion ENUM('1ª', '2ª', '3ª') NOT NULL,
+    tomo INT NOT NULL,
+    numeroPagina INT NOT NULL,
+    lado ENUM('Frontal', 'Trasera') NOT NULL,
+    notasMarginales VARCHAR(255) DEFAULT '1',
+    nombre VARCHAR(100) NOT NULL,
+    primerApellido VARCHAR(100) NOT NULL,
+    segundoApellido VARCHAR(100),
+    tipoDocumento ENUM('NIF', 'NIE'),
+    documento VARCHAR(50),
+    fecha DATE,
+    observaciones TEXT,
+    urlPDF VARCHAR(255),
+    CONSTRAINT uniqueClavePrimaria UNIQUE (seccion, tomo, numeroPagina, lado)
+);
+
+
+CONSTRAINT --> Se define una restricción (CONSTRAINT) para garantizar que no existan duplicados en la combinación de seccion, tomo, numeroPagina y lado. Esto garantiza que no existan duplicados para los registros de la misma página y lado.
+
+
+Comando de actualización para agregar el PDF: Si el archivo PDF está en la ruta ./registro_1.pdf -->
+UPDATE registrosCiviles
+SET urlPDF = LOAD_FILE('/ruta/completa/al/archivo/registro_1.pdf')
+WHERE id = 1;
+
+
+
+Ejemplo de inserción de datos:
+INSERT INTO registros_civiles (
+    registro,
+    seccion,
+    tomo,
+    numero_pagina,
+    lado,
+    nombre,
+    primer_apellido,
+    tipo_documento,
+    documento
+) VALUES (
+    '123456',
+    '1ª',
+    45,
+    120,
+    'Frontal',
+    'Juan',
+    'Pérez',
+    'NIF',
+    '12345678A'
+);
+
+
+-------------------------------------------------------------------------------------------
+CONEXIÓN CON LA BASE DE DATOS
+Conectar esta estructura de base de datos con una aplicación usando SvelteKit 5 y TypeScript. Para simplificar, usaremos una configuración típica de base de datos con MySQL o MariaDB, a través de un ORM como Prisma, que es altamente compatible con TypeScript y facilita las consultas.
+Usaremos una configuración típica de base de datos con MySQL o MariaDB, a través de un ORM como Prisma, que es altamente compatible con TypeScript y facilita las consultas.
+
+npm install prisma @prisma/client mysql2
+npx prisma init
+Esto generará un archivo prisma/schema.prisma.
+
+Configuración del schema.prisma:
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model RegistroCivil {
+  id                Int      @id @default(autoincrement())
+  clavePrimaria     String   @unique @default(concat(seccion, "-", tomo, "-", numeroPagina, "-", lado))
+  registro          String   @default("xxxx")
+  seccion           String   @map("seccion") // ENUM('1ª', '2ª', '3ª')
+  tomo              Int
+  numeroPagina      Int
+  lado              String   @map("lado")    // ENUM('Frontal', 'Trasera')
+  notasMarginales   String?  @default("1")
+  nombre            String
+  primerApellido    String
+  segundoApellido   String?
+  tipoDocumento     String?  @map("tipoDocumento") // ENUM('NIF', 'NIE')
+  documento         String?
+  fecha             DateTime?
+  observaciones     String?
+  urlPDF            String?
+}
+
+En el archivo .env, configura la conexión a tu base de datos:
+DATABASE_URL="mysql://user:password@localhost:3306/nombre_basedatos"
+
+Generar el Cliente de Prisma
+npx prisma generate
+
+Crear API Endpoints en SvelteKit: Estructura de Archivos. Crea un endpoint en src/routes/api/registros/ -->
+GET: Recuperar registros.
+POST: Crear un registro.
+PUT: Actualizar un registro.
+DELETE: Eliminar un registro.
+
+
+Código para los Endpoints
+
