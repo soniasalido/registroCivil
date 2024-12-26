@@ -4,7 +4,6 @@
 	import ModificarRegistro from '../modificar/ModificarRegistro.svelte';
 
 	let resultados: any[] = [];
-	let cargando = false;
 	let mostrarModificar = false;
 	let error: string | null = null;
 	let success: string | null = null;
@@ -48,7 +47,6 @@
 	// Función para manejar la búsqueda
 	// Función para manejar la búsqueda
 	async function buscarRegistros() {
-		cargando = true;
 		error = '';
 		resultados = [];
 
@@ -69,10 +67,14 @@
 
 			const data = await response.json();
 			resultados = data.registros || [];
+
+			// Si no hay resultados, se muestra un mensaje de error
+			if (resultados.length === 0) {
+				error = 'No se encontraron registros que coincidan con la búsqueda.';
+			}
 		} catch (err) {
 			error = `Error al buscar registros: ${(err as Error).message}`;
 		} finally {
-			cargando = false;
 		}
 	}
 
@@ -83,13 +85,6 @@
 			searchBy === 'documento'
 				? { seccion, tomo, pagina, lado }
 				: { nombre, primerApellido, segundoApellido };
-
-		if (typeof onSearch === 'function') {
-			// Envía los parámetros al componente padre
-			onSearch(params);
-		} else {
-			console.warn('onSearch no está definido o no es una función.');
-		}
 
 		// Realiza la búsqueda en el servidor
 		buscarRegistros();
@@ -303,9 +298,6 @@
 		<p class="error">{error}</p>
 	{/if}
 
-	{#if !cargando && resultados.length === 0 && !error}
-		<p>No se encontraron resultados.</p>
-	{/if}
 
 </main>
 
