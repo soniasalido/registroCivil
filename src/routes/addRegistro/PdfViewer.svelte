@@ -88,9 +88,9 @@
 	{#if urlPDF}
 		<canvas bind:this={canvas}></canvas>
 		<div class="controls">
-			<button on:click={prevPage} disabled={pageNum === 1}>&laquo; Anterior</button>
+			<button onclick={prevPage} disabled={pageNum === 1}>&laquo; Anterior</button>
 			<span>Página {pageNum} de {totalPages}</span>
-			<button on:click={nextPage} disabled={pageNum === totalPages}>Siguiente &raquo;</button>
+			<button onclick={nextPage} disabled={pageNum === totalPages}>Siguiente &raquo;</button>
 		</div>
 	{:else}
 		<p>No se ha cargado ningún documento.</p>
