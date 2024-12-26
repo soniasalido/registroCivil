@@ -82,30 +82,49 @@
 	};
 
 
-	//Boton para imprimir el PDF
+	//Boton para imprimir el PDF --> Imprimir datos del día que se manda a imprimir, nº de página, etc.
+	// const printPdf = () => {
+	// 	if (!canvas) return;
+	// 	const canvasDataUrl = canvas.toDataURL('image/png');
+	// 	const printWindow = window.open('', '_blank');
+	// 	if (printWindow) {
+	// 		printWindow.document.write(`
+	// 			<html>
+	// 				<head>
+	// 					<title>Imprimir PDF</title>
+	// 				</head>
+	// 				<body style="margin: 0; text-align: center;">
+	// 					<img src="${canvasDataUrl}" style="max-width: 100%; height: auto;">
+	// 				</body>
+	// 			</html>
+	// 		`);
+	// 		printWindow.document.close();
+	// 		printWindow.focus();
+	// 		setTimeout(() => {
+	// 			printWindow.print();
+	// 			printWindow.close();
+	// 		}, 500);
+	// 	}
+	// };
+
+	// Botón para imprimir el PDF --> Imprimir el PDF directamente, sin agregar nada más
 	const printPdf = () => {
-		if (!canvas) return;
-		const canvasDataUrl = canvas.toDataURL('image/png');
-		const printWindow = window.open('', '_blank');
+		if (!url) {
+			console.error("No se puede imprimir: URL del PDF no proporcionada.");
+			return;
+		}
+
+		// Abrir el archivo PDF en una nueva pestaña y llamar a print()
+		const printWindow = window.open(url, '_blank');
 		if (printWindow) {
-			printWindow.document.write(`
-				<html>
-					<head>
-						<title>Imprimir PDF</title>
-					</head>
-					<body style="margin: 0; text-align: center;">
-						<img src="${canvasDataUrl}" style="max-width: 100%; height: auto;">
-					</body>
-				</html>
-			`);
-			printWindow.document.close();
 			printWindow.focus();
 			setTimeout(() => {
 				printWindow.print();
-				printWindow.close();
-			}, 500);
+			}, 500); // Espera breve para asegurar la carga
 		}
 	};
+
+
 
 	// Cargar el PDF cuando la URL cambie
 	$effect(() => {

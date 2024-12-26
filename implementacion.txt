@@ -9,7 +9,7 @@ Gestión de los libros antiguos que no están informatizados del registro civil 
 ------------------------------------
 Sevidor de documentos:
 npm install -g http-server
-http-server  http-server C:\Users\Usuario\Documents\registroCivil-APP\uploads -p 8080 --cors --showDir -p 8080 --cors --showDir
+http-server  http-server C:\Users\Usuario\Documents\registroCivil-APP\uploads -p 8080 --cors --showDir 
 
 
 
