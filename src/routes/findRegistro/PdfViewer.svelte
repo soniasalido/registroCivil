@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { RegistroStore} from '../../core/store/registroStore';
+	import { writable } from 'svelte/store';
+	import { PDFDocument, rgb } from 'pdf-lib';
 
 	let { url } = $props(); // Uso de la runa $props para recibir las propiedades
+
+	// Suscripción reactiva al store
+	let registro;
+	RegistroStore.subscribe((value) => {
+		registro = value;
+	});
 
 	let pdfDoc: any;
 	let pageNum = 1;
@@ -83,29 +92,29 @@
 
 
 	//Boton para imprimir el PDF --> Imprimir datos del día que se manda a imprimir, nº de página, etc.
-	// const printPdf = () => {
-	// 	if (!canvas) return;
-	// 	const canvasDataUrl = canvas.toDataURL('image/png');
-	// 	const printWindow = window.open('', '_blank');
-	// 	if (printWindow) {
-	// 		printWindow.document.write(`
-	// 			<html>
-	// 				<head>
-	// 					<title>Imprimir PDF</title>
-	// 				</head>
-	// 				<body style="margin: 0; text-align: center;">
-	// 					<img src="${canvasDataUrl}" style="max-width: 100%; height: auto;">
-	// 				</body>
-	// 			</html>
-	// 		`);
-	// 		printWindow.document.close();
-	// 		printWindow.focus();
-	// 		setTimeout(() => {
-	// 			printWindow.print();
-	// 			printWindow.close();
-	// 		}, 500);
-	// 	}
-	// };
+	const printPdfconMetaDatos= () => {
+		if (!canvas) return;
+		const canvasDataUrl = canvas.toDataURL('image/png');
+		const printWindow = window.open('', '_blank');
+		if (printWindow) {
+			printWindow.document.write(`
+				<html>
+					<head>
+						<title>Imprimir PDF</title>
+					</head>
+					<body style="margin: 0; text-align: center;">
+						<img src="${canvasDataUrl}" style="max-width: 100%; height: auto;">
+					</body>
+				</html>
+			`);
+			printWindow.document.close();
+			printWindow.focus();
+			setTimeout(() => {
+				printWindow.print();
+				printWindow.close();
+			}, 500);
+		}
+	};
 
 	// Botón para imprimir el PDF --> Imprimir el PDF directamente, sin agregar nada más
 	const printPdf = () => {
@@ -124,6 +133,82 @@
 		}
 	};
 
+
+	// Botón para imprimir el PDF --> Imprimir el PDF con los datos del registro seleccionado
+	const printPdfWithRegistro = async () => {
+		if (!url) {
+			console.error("No se puede imprimir: URL del PDF no proporcionada.");
+			return;
+		}
+
+		try {
+			const response = await fetch(url);
+			const existingPdfBytes = await response.arrayBuffer();
+
+			// Carga el PDF original
+			const pdfDoc = await PDFDocument.load(existingPdfBytes);
+
+			// Agrega una nueva página
+			const newPage = pdfDoc.addPage([595, 842]); // Tamaño A4
+			const { width, height } = newPage.getSize();
+
+			// Formatear los datos del registro
+			const fields = [
+				`ID: ${registro.id}`,
+				`Sección: ${registro.seccion}`,
+				`Tomo: ${registro.tomo}`,
+				`Número de Página: ${registro.numeroPagina}`,
+				`Lado: ${registro.lado}`,
+				`Nombre: ${registro.nombre}`,
+				`Primer Apellido: ${registro.primerApellido}`,
+				`Segundo Apellido: ${registro.segundoApellido}`,
+				`Tipo de Documento: ${registro.tipoDocumento}`,
+				`Documento: ${registro.documento}`,
+				`Fecha: ${registro.fecha}`,
+				`Observaciones: ${registro.observaciones}`,
+			];
+
+			// Dibujar los datos en la nueva página
+			newPage.drawText(`Registro Civil de Nigüelas - Registro Seleccionado:`, {
+				x: 50,
+				y: height - 50,
+				size: 18,
+				color: rgb(0, 0, 0),
+			});
+
+			let yPosition = height - 80; // Posición inicial
+			const lineHeight = 20; // Espaciado entre líneas
+
+			fields.forEach((field) => {
+				newPage.drawText(field, {
+					x: 50,
+					y: yPosition,
+					size: 12,
+					color: rgb(0, 0, 0),
+				});
+				yPosition -= lineHeight;
+			});
+
+			// Guardar el PDF modificado
+			const pdfBytes = await pdfDoc.save();
+
+			// Crear un blob para abrir o imprimir
+			const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+			const pdfUrl = URL.createObjectURL(pdfBlob);
+
+			// Abrir el PDF en una nueva pestaña para impresión
+			const printWindow = window.open(pdfUrl, '_blank');
+			if (printWindow) {
+				printWindow.focus();
+				setTimeout(() => {
+					printWindow.print();
+					URL.revokeObjectURL(pdfUrl); // Limpia el URL creado
+				}, 500);
+			}
+		} catch (error) {
+			console.error('Error al imprimir el PDF:', error);
+		}
+	};
 
 
 	// Cargar el PDF cuando la URL cambie
@@ -148,7 +233,7 @@
 		<div class="controls">
 			<button onclick={prevPage} disabled={pageNum === 1}>&laquo; Anterior</button>
 			<button onclick={nextPage} disabled={pageNum === totalPages}>Siguiente &raquo;</button>
-			<button onclick={printPdf}>Imprimir</button>
+			<button onclick={printPdfWithRegistro}>Imprimir</button>
 		</div>
 	{:else}
 		<p>No se ha cargado ningún documento.</p>

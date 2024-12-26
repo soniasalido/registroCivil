@@ -303,9 +303,10 @@
 		<p class="error">{error}</p>
 	{/if}
 
-	<!--{#if !cargando && resultados.length === 0 && !error}-->
-	<!--	<p>No se encontraron resultados.</p>-->
-	<!--{/if}-->
+	{#if !cargando && resultados.length === 0 && !error}
+		<p>No se encontraron resultados.</p>
+	{/if}
+
 </main>
 
 <style>
