@@ -3,7 +3,7 @@
 	import { RegistroStore} from '../../core/store/registroStore';
 	import { writable } from 'svelte/store';
 	import { PDFDocument, rgb } from 'pdf-lib';
-	import  logoAyto from '../../assets/escudoAYTO.png';
+
 
 	// Obtener la fecha actual y formatearla
 	const currentDate = new Date();
@@ -161,24 +161,11 @@
 			// Carga el PDF original
 			const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
-			// Cargar el logotipo como un array de bytes
-			const logoBytes = await fetch(logoAyto).then((res) => res.arrayBuffer());
-
-			// Incorporar la imagen al PDF
-			const logoImage = await pdfDoc.embedPng(logoBytes); // Cambia a embedJpg si usas un JPG
-			const logoDims = logoImage.scale(0.05);
 
 			// Agrega una nueva página
 			const newPage = pdfDoc.addPage([595, 842]); // Tamaño A4
 			const { width, height } = newPage.getSize();
 
-			// Dibujar el logotipo en la parte superior de la página
-			newPage.drawImage(logoImage, {
-				x: width - logoDims.width - 20, // Coloca el logotipo en la parte derecha con un margen de 20
-				y: height - logoDims.height - 20, // Desplazamiento desde la parte superior
-				width: logoDims.width,
-				height: logoDims.height,
-			});
 
 			// Formatear los datos del registro
 			const fields = [
@@ -193,7 +180,7 @@
 				`Tipo de Documento: ${registro.tipoDocumento}`,
 				`Documento: ${registro.documento}`,
 				`Fecha: ${registro.fecha}`,
-				`Observaciones: ${registro.observaciones}`
+				`Notas Marginales: ${registro.observaciones}`
 			];
 
 			// Dibujar los datos en la nueva página
