@@ -8,9 +8,9 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-model RegistroCivil {
+model registrocivil {
   id              Int       @id @default(autoincrement())
-  clavePrimaria   String    @unique
+  clavePrimaria   String    @unique(map: "RegistroCivil_clavePrimaria_key")
   registro        String    @default("xxxx")
   seccion         String
   tomo            Int
