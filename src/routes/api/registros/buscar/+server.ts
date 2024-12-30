@@ -11,7 +11,7 @@ export async function POST({ request }: { request: Request }) {
 			return json({ error: 'Se requiere al menos un parámetro de búsqueda' }, { status: 400 });
 		}
 
-		const registros = await prisma.registroCivil.findMany({
+		const registros = await prisma.registrocivil.findMany({
 			where: {
 				AND: [
 					// Búsqueda por nombre y apellidos
