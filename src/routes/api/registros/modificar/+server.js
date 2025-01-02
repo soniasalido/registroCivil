@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { get } from 'svelte/store';
-import { RegistroStore } from '../../../../core/store/registroStore.js'; // Ajusta la ruta si es diferente
+import { RegistroStore } from '../../../../core/store/registroStore.js';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -23,7 +23,7 @@ export async function PUT({ request }) {
 		const body = await request.json();
 
 		// Actualizar el registro en la base de datos con Prisma
-		const updatedRegistro = await prisma.registroCivil.update({
+		const updatedRegistro = await prisma.registrocivil.update({
 			where: { id: Number(currentRegistro.id) },
 			data: {
 				registro: body.registro || currentRegistro.registro,

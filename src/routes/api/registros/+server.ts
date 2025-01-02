@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 export async function GET() {
 	try {
-		const registros = await prisma.registroCivil.findMany();
+		const registros = await prisma.registrocivil.findMany();
 		return json({ registros });
 	} catch (error) {
 		return json({ error: 'Error fetching records' }, { status: 500 });
@@ -28,7 +28,7 @@ export async function POST({ request }: { request: Request }) {
 
 		const clavePrimaria = `${data.seccion}-${data.tomo}-${data.numeroPagina}-${data.lado}`;
 
-		const registro = await prisma.registroCivil.create({
+		const registro = await prisma.registrocivil.create({
 			data: {
 				...data,
 				clavePrimaria,
@@ -47,7 +47,7 @@ export async function POST({ request }: { request: Request }) {
 export async function PUT({ request }: { request: Request }) {
 	try {
 		const { id, ...data } = await request.json();
-		const registro = await prisma.registroCivil.update({
+		const registro = await prisma.registrocivil.update({
 			where: { id },
 			data,
 		});
@@ -60,7 +60,7 @@ export async function PUT({ request }: { request: Request }) {
 export async function DELETE({ request }: { request: Request }) {
 	try {
 		const { id } = await request.json();
-		await prisma.registroCivil.delete({
+		await prisma.registrocivil.delete({
 			where: { id },
 		});
 		return json({ success: true });

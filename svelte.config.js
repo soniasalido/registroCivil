@@ -7,10 +7,10 @@ const config = {
 
 	kit: {
 		adapter: adapter({
-			out: 'build', // Carpeta de salida
+			out: 'build',
 		}),
 		paths: {
-			base: '', // Ajusta si es necesario
+			base: '',
 		}
 	}
 };
