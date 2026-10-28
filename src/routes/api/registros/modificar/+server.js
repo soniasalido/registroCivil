@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { get } from 'svelte/store';
-import { RegistroStore } from '../../../../core/store/registroStore.js';
+import { RegistroStore } from '../../../../core/store/registroStore.ts';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();

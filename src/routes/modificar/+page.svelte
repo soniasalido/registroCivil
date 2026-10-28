@@ -1,6 +1,6 @@
 
 <script>
-	import { Footer, Header, NavModificar } from '$lib';
+	import { Footer, Header } from '$lib';
 	import ModificarRegistro from './ModificarRegistro.svelte';
 
 </script>
@@ -10,6 +10,5 @@
 	<h2>Modificar Registro</h2>
 
 	<ModificarRegistro />
-	<NavModificar />
 	<Footer />
 </main>

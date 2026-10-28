@@ -9,9 +9,7 @@ export default defineConfig({
 	build: {
 		rollupOptions: {
 			output: {
-				manualChunks: {
-					pdfjs: ['pdfjs-dist'] // Manejo separado de pdf.js para reducir errores
-				}
+
 			}
 		}
 	}
